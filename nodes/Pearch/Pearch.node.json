@@ -1,0 +1,20 @@
+{
+  "node": "n8n-nodes-base.pearch",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": [
+    "Development"
+  ],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://apidocs.pearch.ai/reference/post_v2-search"
+      }
+    ]
+  },
+  "alias": [
+    "Pearch",
+    "Search",
+    "API"
+  ]
+}
