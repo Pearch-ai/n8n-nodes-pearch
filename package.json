@@ -1,22 +1,31 @@
 {
   "name": "n8n-nodes-pearch",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n node for Pearch API - search operations with automatic result waiting",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "pearch",
+    "search",
+    "api",
+    "recruitment",
+    "sourcing",
+    "ai"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/pearch-ai/n8n-nodes-pearch",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Pearch AI",
+    "email": "mz@pearch.ai"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/n8n-nodes-pearch.git"
+    "url": "https://github.com/pearch-ai/n8n-nodes-pearch"
   },
   "engines": {
     "node": ">=20.15"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "index.js",
   "scripts": {
@@ -28,7 +37,11 @@
     "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE.md"
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,

@@ -13,8 +13,8 @@ export class Pearch implements INodeType {
 		icon: 'file:pearch.svg',
 		group: ['transform'],
 		version: 1,
-		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with Pearch API for search operations',
+		subtitle: 'Search and wait for results',
+		description: 'Search for candidates using Pearch API with automatic result waiting',
 		defaults: {
 			name: 'Pearch',
 		},
@@ -28,57 +28,6 @@ export class Pearch implements INodeType {
 			},
 		],
 		properties: [
-			{
-				displayName: 'Resource',
-				name: 'resource',
-				type: 'options',
-				noDataExpression: true,
-				options: [
-					{
-						name: 'Search',
-						value: 'search',
-					},
-				],
-				default: 'search',
-			},
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['search'],
-					},
-				},
-				options: [
-					{
-						name: 'Submit Search',
-						value: 'submit',
-						description: 'Submit a search task for background execution',
-						action: 'Submit a search task',
-						routing: {
-							request: {
-								method: 'POST',
-								url: '/v2/search/submit',
-							},
-						},
-					},
-					{
-						name: 'Get Search Status',
-						value: 'status',
-						description: 'Get the status of a submitted search task',
-						action: 'Get search status',
-						routing: {
-							request: {
-								method: 'GET',
-								url: '=/v2/search/status/{{$parameter.taskId}}',
-							},
-						},
-					},
-				],
-				default: 'submit',
-			},
 			// Submit Search Operation Fields
 			{
 				displayName: 'Query',
@@ -86,13 +35,7 @@ export class Pearch implements INodeType {
 				type: 'string',
 				required: true,
 				default: '',
-				description: 'The search query to execute',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Search query (e.g., "python developer with Django experience")',
 				routing: {
 					send: {
 						property: 'query',
@@ -109,12 +52,6 @@ export class Pearch implements INodeType {
 				},
 				default: 50,
 				description: 'Max number of results to return',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
 				routing: {
 					send: {
 						property: 'limit',
@@ -139,13 +76,7 @@ export class Pearch implements INodeType {
 					},
 				],
 				default: 'fast',
-				description: 'Type of search to perform',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Search type: Fast for quick results, Pro for comprehensive analysis',
 				routing: {
 					send: {
 						property: 'type',
@@ -158,13 +89,7 @@ export class Pearch implements INodeType {
 				name: 'insights',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to include insights in the search',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Whether to include AI-powered insights about candidates',
 				routing: {
 					send: {
 						property: 'insights',
@@ -177,13 +102,7 @@ export class Pearch implements INodeType {
 				name: 'highFreshness',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to prioritize high freshness results',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Whether to prioritize recently updated candidate profiles',
 				routing: {
 					send: {
 						property: 'high_freshness',
@@ -196,13 +115,7 @@ export class Pearch implements INodeType {
 				name: 'showEmails',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to include email addresses in results',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Whether to include candidate email addresses in search results',
 				routing: {
 					send: {
 						property: 'show_emails',
@@ -215,13 +128,7 @@ export class Pearch implements INodeType {
 				name: 'showPhoneNumbers',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to include phone numbers in results',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Whether to include candidate phone numbers in search results',
 				routing: {
 					send: {
 						property: 'show_phone_numbers',
@@ -234,13 +141,7 @@ export class Pearch implements INodeType {
 				name: 'profileScoring',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to include profile scoring in results',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['submit'],
-					},
-				},
+				description: 'Whether to include AI-powered profile matching scores',
 				routing: {
 					send: {
 						property: 'profile_scoring',
@@ -248,21 +149,30 @@ export class Pearch implements INodeType {
 					},
 				},
 			},
-			// Get Search Status Operation Fields
+			// Wait Settings
 			{
-				displayName: 'Task ID',
-				name: 'taskId',
-				type: 'string',
-				required: true,
-				default: '',
-				description: 'The task ID returned from submit search operation',
-				displayOptions: {
-					show: {
-						resource: ['search'],
-						operation: ['status'],
-					},
+				displayName: 'Max Wait Time (Seconds)',
+				name: 'maxWaitTime',
+				type: 'number',
+				typeOptions: {
+					minValue: 10,
+					maxValue: 3600,
 				},
+				default: 300,
+				description: 'Maximum time to wait for search completion (10 seconds to 1 hour)',
 			},
+			{
+				displayName: 'Polling Interval (Seconds)',
+				name: 'pollingInterval',
+				type: 'number',
+				typeOptions: {
+					minValue: 2,
+					maxValue: 60,
+				},
+				default: 5,
+				description: 'How often to check search status (2-60 seconds)',
+			},
+
 		],
 	};
 
@@ -270,8 +180,7 @@ export class Pearch implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		const resource = this.getNodeParameter('resource', 0) as string;
-		const operation = this.getNodeParameter('operation', 0) as string;
+
 
 		let item: INodeExecutionData;
 
@@ -279,106 +188,103 @@ export class Pearch implements INodeType {
 			try {
 				item = items[itemIndex];
 
-				if (resource === 'search') {
-					if (operation === 'submit') {
-						// Submit search operation
-						const query = this.getNodeParameter('query', itemIndex, '') as string;
-						if (!query || query.trim() === '') {
-							throw new NodeOperationError(this.getNode(), 'Query parameter is required and cannot be empty', { itemIndex });
-						}
-						const limit = this.getNodeParameter('limit', itemIndex, 10) as number;
-						const type = this.getNodeParameter('type', itemIndex, '') as string;
-						const insights = this.getNodeParameter('insights', itemIndex, false) as boolean;
-						const highFreshness = this.getNodeParameter('highFreshness', itemIndex, false) as boolean;
-						const showEmails = this.getNodeParameter('showEmails', itemIndex, false) as boolean;
-						const showPhoneNumbers = this.getNodeParameter('showPhoneNumbers', itemIndex, false) as boolean;
-						const profileScoring = this.getNodeParameter('profileScoring', itemIndex, false) as boolean;
-
-						const body: any = {
-							query,
-							limit,
-						};
-
-						// Add optional parameters only if they have meaningful values
-						if (type && type.trim() !== '') body.type = type;
-						if (insights !== undefined) body.insights = insights;
-						if (highFreshness !== undefined) body.high_freshness = highFreshness;
-						if (showEmails !== undefined) body.show_emails = showEmails;
-						if (showPhoneNumbers !== undefined) body.show_phone_numbers = showPhoneNumbers;
-						if (profileScoring !== undefined) body.profile_scoring = profileScoring;
-
-						// Test credentials loading
-						let credentials;
-						try {
-							credentials = await this.getCredentials('pearchApi');
-						} catch (credError) {
-							throw new NodeOperationError(this.getNode(), `Failed to load credentials: ${credError.message}`, { itemIndex });
-						}
-
-						if (!credentials) {
-							throw new NodeOperationError(this.getNode(), 'Pearch API credentials not found', { itemIndex });
-						}
-
-						if (!credentials.baseUrl) {
-							throw new NodeOperationError(this.getNode(), 'Base URL not found in credentials', { itemIndex });
-						}
-
-						if (!credentials.apiKey) {
-							throw new NodeOperationError(this.getNode(), 'API Key not found in credentials', { itemIndex });
-						}
-
-						const fullUrl = `${credentials.baseUrl}/v2/search/submit`;
-
-						const response = await this.helpers.httpRequest({
-							method: 'POST',
-							url: fullUrl,
-							headers: {
-								'Accept': 'application/json',
-								'Content-Type': 'application/json',
-								'Authorization': `Bearer ${credentials.apiKey}`,
-							},
-							body,
-						});
-
-						// Response received successfully
-
-						item.json = response;
-					} else if (operation === 'status') {
-						// Get search status operation
-						const taskId = this.getNodeParameter('taskId', itemIndex, '') as string;
-
-						if (!taskId) {
-							throw new NodeOperationError(this.getNode(), 'Task ID is required for status operation', { itemIndex });
-						}
-
-						const credentials = await this.getCredentials('pearchApi');
-						if (!credentials) {
-							throw new NodeOperationError(this.getNode(), 'Pearch API credentials not found', { itemIndex });
-						}
-
-						if (!credentials.baseUrl) {
-							throw new NodeOperationError(this.getNode(), 'Base URL not found in credentials', { itemIndex });
-						}
-
-						if (!credentials.apiKey) {
-							throw new NodeOperationError(this.getNode(), 'API Key not found in credentials', { itemIndex });
-						}
-
-						const fullUrl = `${credentials.baseUrl}/v2/search/status/${taskId}`;
-
-						const response = await this.helpers.httpRequest({
-							method: 'GET',
-							url: fullUrl,
-							headers: {
-								'Accept': 'application/json',
-								'Content-Type': 'application/json',
-								'Authorization': `Bearer ${credentials.apiKey}`,
-							},
-						});
-
-						item.json = response;
+				// Submit search and wait for results
+					const query = this.getNodeParameter('query', itemIndex, '') as string;
+					if (!query || query.trim() === '') {
+						throw new NodeOperationError(this.getNode(), 'Query parameter is required and cannot be empty', { itemIndex });
 					}
-				}
+					const limit = this.getNodeParameter('limit', itemIndex, 10) as number;
+					const type = this.getNodeParameter('type', itemIndex, '') as string;
+					const insights = this.getNodeParameter('insights', itemIndex, false) as boolean;
+					const highFreshness = this.getNodeParameter('highFreshness', itemIndex, false) as boolean;
+					const showEmails = this.getNodeParameter('showEmails', itemIndex, false) as boolean;
+					const showPhoneNumbers = this.getNodeParameter('showPhoneNumbers', itemIndex, false) as boolean;
+					const profileScoring = this.getNodeParameter('profileScoring', itemIndex, false) as boolean;
+					const maxWaitTime = this.getNodeParameter('maxWaitTime', itemIndex, 300) as number;
+					const pollingInterval = this.getNodeParameter('pollingInterval', itemIndex, 5) as number;
+
+					const body: any = {
+						query,
+						limit,
+					};
+
+					// Add optional parameters only if they have meaningful values
+					if (type && type.trim() !== '') body.type = type;
+					if (insights !== undefined) body.insights = insights;
+					if (highFreshness !== undefined) body.high_freshness = highFreshness;
+					if (showEmails !== undefined) body.show_emails = showEmails;
+					if (showPhoneNumbers !== undefined) body.show_phone_numbers = showPhoneNumbers;
+					if (profileScoring !== undefined) body.profile_scoring = profileScoring;
+
+					// Get credentials
+					const credentials = await this.getCredentials('pearchApi');
+					if (!credentials) {
+						throw new NodeOperationError(this.getNode(), 'Pearch API credentials not found', { itemIndex });
+					}
+
+					if (!credentials.baseUrl) {
+						throw new NodeOperationError(this.getNode(), 'Base URL not found in credentials', { itemIndex });
+					}
+
+					if (!credentials.apiKey) {
+						throw new NodeOperationError(this.getNode(), 'API Key not found in credentials', { itemIndex });
+					}
+
+					// Submit search
+					const submitUrl = `${credentials.baseUrl}/v2/search/submit`;
+					const submitResponse = await this.helpers.httpRequest({
+						method: 'POST',
+						url: submitUrl,
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${credentials.apiKey}`,
+						},
+						body,
+					});
+
+					// Extract task ID from response
+					const taskId = submitResponse.task_id || submitResponse.id;
+					if (!taskId) {
+						throw new NodeOperationError(this.getNode(), 'No task ID received from submit response', { itemIndex });
+					}
+
+					// Wait for results - simple polling without delays
+					let finalResponse;
+					let attempts = 0;
+					const maxAttempts = Math.ceil(maxWaitTime / pollingInterval);
+
+					while (attempts < maxAttempts) {
+						attempts++;
+
+						// Check status
+						const statusUrl = `${credentials.baseUrl}/v2/search/status/${taskId}`;
+						const statusResponse = await this.helpers.httpRequest({
+							method: 'GET',
+							url: statusUrl,
+							headers: {
+								'Accept': 'application/json',
+								'Content-Type': 'application/json',
+								'Authorization': `Bearer ${credentials.apiKey}`,
+							},
+						});
+
+						// Check if results are ready
+						if (statusResponse.status === 'completed' || statusResponse.status === 'done') {
+							finalResponse = statusResponse;
+							break;
+						} else if (statusResponse.status === 'failed' || statusResponse.status === 'error') {
+							throw new NodeOperationError(this.getNode(), `Search failed with status: ${statusResponse.status}`, { itemIndex });
+						}
+
+						// Continue polling immediately (no delay)
+					}
+
+					if (!finalResponse) {
+						throw new NodeOperationError(this.getNode(), `Search did not complete within ${maxWaitTime} seconds`, { itemIndex });
+					}
+
+					item.json = finalResponse;
 
 				returnData.push(item);
 			} catch (error) {

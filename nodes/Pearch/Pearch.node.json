@@ -1,14 +1,21 @@
 {
-  "node": "n8n-nodes-base.pearch",
+  "node": "n8n-nodes-pearch.pearch",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
   "categories": [
-    "Development"
+    "Development",
+    "Communication",
+    "Productivity"
   ],
   "resources": {
     "primaryDocumentation": [
       {
         "url": "https://apidocs.pearch.ai/reference/post_v2-search"
+      }
+    ],
+    "credentialDocumentation": [
+      {
+        "url": "https://docs.pearch.ai"
       }
     ]
   },
@@ -16,5 +23,11 @@
     "Pearch",
     "Search",
     "API"
+  ],
+  "tags": [
+    "pearch",
+    "search",
+    "recruitment",
+    "api"
   ]
 }
