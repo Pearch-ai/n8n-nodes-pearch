@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-pearch",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "n8n node for Pearch API - search operations with automatic result waiting",
   "keywords": [
     "n8n-community-node-package",
@@ -63,4 +63,4 @@
   "peerDependencies": {
     "n8n-workflow": "*"
   }
-}
+  }

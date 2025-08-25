@@ -158,7 +158,7 @@ export class Pearch implements INodeType {
 					minValue: 10,
 					maxValue: 3600,
 				},
-				default: 300,
+				default: 600,
 				description: 'Maximum time to wait for search completion (10 seconds to 1 hour)',
 			},
 			{
@@ -169,7 +169,7 @@ export class Pearch implements INodeType {
 					minValue: 2,
 					maxValue: 60,
 				},
-				default: 5,
+				default: 15,
 				description: 'How often to check search status (2-60 seconds)',
 			},
 
@@ -249,13 +249,15 @@ export class Pearch implements INodeType {
 						throw new NodeOperationError(this.getNode(), 'No task ID received from submit response', { itemIndex });
 					}
 
-					// Wait for results - simple polling without delays
+					// Wait for results with proper polling delays
 					let finalResponse;
-					let attempts = 0;
-					const maxAttempts = Math.ceil(maxWaitTime / pollingInterval);
+					const startTime = Date.now();
 
-					while (attempts < maxAttempts) {
-						attempts++;
+					while (true) {
+						// Check if we've exceeded max wait time
+						if (Date.now() - startTime > maxWaitTime * 1000) {
+							throw new NodeOperationError(this.getNode(), `Search did not complete within ${maxWaitTime} seconds`, { itemIndex });
+						}
 
 						// Check status
 						const statusUrl = `${credentials.baseUrl}/v2/search/status/${taskId}`;
@@ -276,12 +278,10 @@ export class Pearch implements INodeType {
 						} else if (statusResponse.status === 'failed' || statusResponse.status === 'error') {
 							throw new NodeOperationError(this.getNode(), `Search failed with status: ${statusResponse.status}`, { itemIndex });
 						}
-
-						// Continue polling immediately (no delay)
-					}
-
-					if (!finalResponse) {
-						throw new NodeOperationError(this.getNode(), `Search did not complete within ${maxWaitTime} seconds`, { itemIndex });
+						const delayStart = Date.now();
+						while (Date.now() - delayStart < pollingInterval * 1000) {
+							await new Promise(resolve => resolve(undefined));
+						}
 					}
 
 					item.json = finalResponse;
